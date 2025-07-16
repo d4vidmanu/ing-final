@@ -1,7 +1,6 @@
 import json
-from src.models.ride import Ride
+from src.models.ride import Ride  # Asegúrate de que la importación de Ride esté al inicio
 from src.models.user import User
-
 
 class DataHandler:
     def __init__(self, filename='data.json'):
@@ -64,7 +63,6 @@ class DataHandler:
                         driver.add_ride(ride)
 
                 # Update the ID counter
-                from src.models.ride import Ride
                 Ride._id_counter = max_id + 1
 
         except FileNotFoundError:
