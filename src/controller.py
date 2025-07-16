@@ -5,6 +5,21 @@ app = Flask(__name__)
 data_handler = DataHandler()
 
 
+@app.route('/usuarios', methods=['POST'])
+def crear_usuario():
+    """Crea un nuevo usuario"""
+    data = request.get_json()
+    alias = data.get('alias')
+    name = data.get('name')
+    car_plate = data.get('carPlate', None)  # Optional
+
+    if alias and name:
+        # Crear un nuevo usuario
+        new_user = data_handler.add_user(alias, name, car_plate)  # Llama a add_user con los parámetros directamente
+        return jsonify(new_user.get_user_info()), 201
+    return jsonify({"error": "Faltan datos necesarios"}), 400
+
+
 @app.route('/usuarios', methods=['GET'])
 def listar_usuarios():
     """Retorna lista de usuarios"""
