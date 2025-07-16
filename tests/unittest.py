@@ -151,7 +151,96 @@ class TestRideSharing:
         # Aserción
         assert "Hay participantes con solicitudes pendientes" in str(exc_info.value)
 
-    # ==================== ADDITIONAL TESTS ====================
+    # ==================== ADDITIONAL TESTS FOR 100% COVERAGE ====================
+
+    def test_add_participant_when_ride_full_error(self):
+        """Caso de error: Intentar agregar participante cuando ride está lleno (confirmed participants)"""
+        # Inicialización - Crear ride con 1 espacio y llenarlo
+        small_ride = Ride("2025/07/15 22:00", "Av Javier Prado 456, San Borja", 1, self.driver)
+        small_ride.add_participant(self.passenger1, "Destino 1")
+        small_ride.accept_participant(self.passenger1)
+
+        # Ejecución y Verificación
+        with pytest.raises(ValueError) as exc_info:
+            small_ride.add_participant(self.passenger2, "Destino 2")
+
+        # Aserción - Covers: "No hay espacios disponibles para este ride"
+        assert "No hay espacios disponibles para este ride" in str(exc_info.value)
+
+    def test_accept_participant_not_found_error(self):
+        """Caso de error: Intentar aceptar participante que no tiene solicitud pendiente"""
+        # Inicialización - Participante sin solicitud
+
+        # Ejecución y Verificación
+        with pytest.raises(ValueError) as exc_info:
+            self.ride.accept_participant(self.passenger1)
+
+        # Aserción - Covers: "No se encontró solicitud pendiente para este participante"
+        assert "No se encontró solicitud pendiente para este participante" in str(exc_info.value)
+
+    def test_reject_participant_not_found_error(self):
+        """Caso de error: Intentar rechazar participante que no tiene solicitud pendiente"""
+        # Inicialización - Participante sin solicitud
+
+        # Ejecución y Verificación
+        with pytest.raises(ValueError) as exc_info:
+            self.ride.reject_participant(self.passenger1)
+
+        # Aserción - Covers: "No se encontró solicitud pendiente para este participante"
+        assert "No se encontró solicitud pendiente para este participante" in str(exc_info.value)
+
+    def test_start_ride_not_ready_error(self):
+        """Caso de error: Intentar iniciar ride que no está en estado ready"""
+        # Inicialización - Cambiar estado del ride
+        self.ride.status = "inprogress"
+
+        # Ejecución y Verificación
+        with pytest.raises(ValueError) as exc_info:
+            self.ride.start_ride()
+
+        # Aserción - Covers: "El ride no está en estado ready"
+        assert "El ride no está en estado ready" in str(exc_info.value)
+
+    def test_end_ride_not_inprogress_error(self):
+        """Caso de error: Intentar terminar ride que no está en progreso"""
+        # Inicialización - Ride en estado ready
+
+        # Ejecución y Verificación
+        with pytest.raises(ValueError) as exc_info:
+            self.ride.end_ride()
+
+        # Aserción - Covers: "El ride no está en progreso"
+        assert "El ride no está en progreso" in str(exc_info.value)
+
+    def test_unload_participant_not_found_error(self):
+        """Caso de error: Intentar bajar participante que no está en el ride o no está en progreso"""
+        # Inicialización - Participante no está en el ride
+
+        # Ejecución y Verificación
+        with pytest.raises(ValueError) as exc_info:
+            self.ride.unload_participant(self.passenger1)
+
+        # Aserción - Covers: "Participante no encontrado o no está en el ride"
+        assert "Participante no encontrado o no está en el ride" in str(exc_info.value)
+
+    def test_get_ride_info_complete_structure(self):
+        """Caso de éxito: Verificar estructura completa de get_ride_info con allowedSpaces"""
+        # Inicialización
+        self.ride.add_participant(self.passenger1, "Av Aramburú 245, Surquillo")
+        self.ride.accept_participant(self.passenger1)
+
+        # Ejecución
+        ride_info = self.ride.get_ride_info()
+
+        # Verificación o Aserción - Covers: get_ride_info method and allowedSpaces field
+        assert ride_info['id'] == self.ride.id
+        assert ride_info['rideDateAndTime'] == "2025/07/15 22:00"
+        assert ride_info['finalAddress'] == "Av Javier Prado 456, San Borja"
+        assert ride_info['allowedSpaces'] == 3  # This covers the added allowedSpaces field
+        assert ride_info['driver'] == "jperez"
+        assert ride_info['status'] == "ready"
+        assert len(ride_info['participants']) == 1
+        assert ride_info['participants'][0]['participant']['alias'] == "lgomez"
 
     def test_end_ride_marks_inprogress_as_notmarked(self):
         """Caso de éxito: Al terminar ride, participantes en progreso se marcan como notmarked"""
@@ -219,3 +308,43 @@ class TestRideSharing:
         assert stats['participant']['previousRidesTotal'] == 2
         assert stats['participant']['previousRidesCompleted'] == 1
         assert stats['participant']['previousRidesMissing'] == 1
+
+    def test_accept_participant_already_confirmed_error(self):
+        """Caso de error: Intentar aceptar participante que ya fue confirmado"""
+        # Inicialización
+        self.ride.add_participant(self.passenger1, "Av Aramburú 245, Surquillo")
+        self.ride.accept_participant(self.passenger1)
+
+        # Ejecución y Verificación
+        with pytest.raises(ValueError) as exc_info:
+            self.ride.accept_participant(self.passenger1)
+
+        # Aserción
+        assert "No se encontró solicitud pendiente para este participante" in str(exc_info.value)
+
+    def test_reject_participant_already_rejected_error(self):
+        """Caso de error: Intentar rechazar participante que ya fue rechazado"""
+        # Inicialización
+        self.ride.add_participant(self.passenger1, "Av Aramburú 245, Surquillo")
+        self.ride.reject_participant(self.passenger1)
+
+        # Ejecución y Verificación
+        with pytest.raises(ValueError) as exc_info:
+            self.ride.reject_participant(self.passenger1)
+
+        # Aserción
+        assert "No se encontró solicitud pendiente para este participante" in str(exc_info.value)
+
+    def test_unload_participant_not_inprogress_error(self):
+        """Caso de error: Intentar bajar participante que no está en estado inprogress"""
+        # Inicialización
+        self.ride.add_participant(self.passenger1, "Av Aramburú 245, Surquillo")
+        self.ride.accept_participant(self.passenger1)
+        # No iniciamos el ride, así el participante está en "confirmed" no "inprogress"
+
+        # Ejecución y Verificación
+        with pytest.raises(ValueError) as exc_info:
+            self.ride.unload_participant(self.passenger1)
+
+        # Aserción
+        assert "Participante no encontrado o no está en el ride" in str(exc_info.value)
