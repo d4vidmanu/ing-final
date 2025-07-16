@@ -7,15 +7,31 @@ class RideParticipation:
         self.status = status  # waiting, rejected, confirmed, missing, notmarked, inprogress, done
 
     def get_participant_info(self):
+        # Count rides based on participation status, not ride status
+        participant_rides = []
+
+        # Get all rides where this participant has been involved
+        for ride in self.participant.rides:
+            for participation in ride.participants:
+                if participation.participant.alias == self.participant.alias:
+                    participant_rides.append(participation)
+
+        # Count different statuses
+        total_rides = len(participant_rides)
+        completed_rides = len([p for p in participant_rides if p.status == "done"])
+        missing_rides = len([p for p in participant_rides if p.status == "missing"])
+        notmarked_rides = len([p for p in participant_rides if p.status == "notmarked"])
+        rejected_rides = len([p for p in participant_rides if p.status == "rejected"])
+
         return {
             "confirmation": self.confirmation,
             "participant": {
                 "alias": self.participant.alias,
-                "previousRidesTotal": len(self.participant.rides),
-                "previousRidesCompleted": len([ride for ride in self.participant.rides if ride.status == "done"]),
-                "previousRidesMissing": len([ride for ride in self.participant.rides if ride.status == "missing"]),
-                "previousRidesNotMarked": len([ride for ride in self.participant.rides if ride.status == "notmarked"]),
-                "previousRidesRejected": len([ride for ride in self.participant.rides if ride.status == "rejected"])
+                "previousRidesTotal": total_rides,
+                "previousRidesCompleted": completed_rides,
+                "previousRidesMissing": missing_rides,
+                "previousRidesNotMarked": notmarked_rides,
+                "previousRidesRejected": rejected_rides
             },
             "destination": self.destination,
             "occupiedSpaces": self.occupied_spaces,
