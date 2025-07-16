@@ -27,6 +27,32 @@ def listar_usuarios():
     return jsonify(usuarios), 200
 
 
+@app.route('/usuarios/<alias>/rides', methods=['POST'])
+def crear_ride(alias):
+    """Crea un nuevo ride"""
+    data = request.get_json()
+    ride_date_and_time = data.get('rideDateAndTime')
+    final_address = data.get('finalAddress')
+    allowed_spaces = data.get('allowedSpaces')
+
+    if ride_date_and_time and final_address and allowed_spaces:
+        # Verificar que el usuario es un conductor
+        usuario = data_handler.get_user(alias)
+        if usuario:
+            ride = data_handler.add_ride(ride_date_and_time, final_address, allowed_spaces, usuario)
+            return jsonify(ride.get_ride_info()), 201
+        return jsonify({"error": "Usuario no encontrado o no es conductor"}), 404
+    return jsonify({"error": "Faltan datos necesarios"}), 400
+
+
+@app.route('/rides', methods=['GET'])
+def listar_rides_activas():
+    """Retorna los rides activos (en estado 'ready')"""
+    active_rides = [ride.get_ride_info() for ride in data_handler.rides if ride.status == "ready"]
+    return jsonify(active_rides), 200
+
+
+
 @app.route('/usuarios/<alias>', methods=['GET'])
 def obtener_usuario(alias):
     """Retorna los datos del usuario"""
@@ -117,8 +143,17 @@ def iniciar_ride(alias, ride_id):
     if usuario:
         ride = data_handler.get_ride(ride_id)
         if ride:
+            # Cambiar el estado de los rideParticipants a 'missing' si no están presentes
+            for participant in ride.participants:
+                if participant.status == "waiting":  # Si el participante está esperando y no está confirmado
+                    participant.status = "missing"
+
+            # Verificar si todos los participantes están confirmados o rechazados
             if ride.status == "ready" and all(p.status in ["confirmed", "rejected"] for p in ride.participants):
-                ride.start_ride()
+                ride.status = "inprogress"  # Cambiar estado del ride a inprogress
+                for participant in ride.participants:
+                    participant.status = "inprogress"  # Cambiar estado de los participantes a inprogress
+                data_handler.save_data()  # Guardar cambios
                 return jsonify({"message": "Ride iniciado", "ride": ride.get_ride_info()}), 200
             return jsonify({"error": "Ride no esta listo o hay participantes pendientes"}), 422
         return jsonify({"error": "Ride no encontrado"}), 404
@@ -133,11 +168,17 @@ def terminar_ride(alias, ride_id):
         ride = data_handler.get_ride(ride_id)
         if ride:
             if ride.status == "inprogress":
-                ride.end_ride()
+                # Cambiar estado de los participantes en inprogress a notmarked
+                for participant in ride.participants:
+                    if participant.status == "inprogress":
+                        participant.status = "notmarked"
+                ride.status = "done"  # Cambiar el estado del ride a "done"
+                data_handler.save_data()  # Guardar cambios
                 return jsonify({"message": "Ride terminado", "ride": ride.get_ride_info()}), 200
             return jsonify({"error": "Ride no esta en progreso"}), 422
         return jsonify({"error": "Ride no encontrado"}), 404
     return jsonify({"error": "Usuario no encontrado"}), 404
+
 
 
 @app.route('/usuarios/<alias>/rides/<ride_id>/unloadParticipant', methods=['POST'])

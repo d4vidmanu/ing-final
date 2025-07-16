@@ -16,6 +16,33 @@ class Ride:
         else:
             raise ValueError("No hay espacios disponibles para este ride")
 
+    def start_ride(self):
+        """Inicia el ride: cambia el estado de los participantes a 'inprogress' y de los no confirmados a 'missing'"""
+        if self.status == "ready":
+            # Cambiar el estado de los participantes no confirmados a 'missing'
+            for participation in self.participants:
+                if participation.status == "waiting":  # Si está esperando
+                    participation.status = "missing"
+
+            # Cambiar el estado de los participantes confirmados a 'inprogress'
+            for participation in self.participants:
+                if participation.status == "confirmed":  # Si está confirmado
+                    participation.status = "inprogress"
+
+            # Cambiar el estado del ride a 'inprogress'
+            self.status = "inprogress"
+
+    def end_ride(self):
+        """Termina el ride: cambia el estado de los participantes en 'inprogress' a 'notmarked'"""
+        if self.status == "inprogress":
+            # Cambiar el estado de los participantes en 'inprogress' a 'notmarked'
+            for participation in self.participants:
+                if participation.status == "inprogress":
+                    participation.status = "notmarked"
+
+            # Cambiar el estado del ride a 'done'
+            self.status = "done"
+
     def get_ride_info(self):
         return {
             "rideDateAndTime": self.ride_date_and_time,

@@ -21,3 +21,16 @@ class RideParticipation:
             "occupiedSpaces": self.occupied_spaces,
             "status": self.status
         }
+
+    def accept_participant(self):
+        """Marcar al participante como confirmado"""
+        self.confirmation = "accepted"
+        self.status = "confirmed"  # Cambiar el estado a confirmado
+
+    def change_status(self, new_status):
+        """Cambia el estado del participante"""
+        valid_status = ["waiting", "rejected", "confirmed", "missing", "notmarked", "inprogress", "done"]
+        if new_status in valid_status:
+            self.status = new_status
+        else:
+            raise ValueError(f"Estado {new_status} no válido.")

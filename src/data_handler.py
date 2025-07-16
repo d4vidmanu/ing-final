@@ -43,12 +43,16 @@ class DataHandler:
             raise ValueError("El usuario ya existe.")
         user = User(alias, name, car_plate)
         self.users.append(user)
-        self.save_data()  # Guardar los datos después de agregar el nuevo usuario
+        self.save_data()
         return user
 
     def add_ride(self, ride_date_and_time, final_address, allowed_spaces, driver):
         """Añade un nuevo ride a la lista y guarda los datos"""
-        ride = Ride(ride_date_and_time, final_address, allowed_spaces, driver)
+        ride = Ride(ride_date_and_time, final_address, allowed_spaces, driver, status="ready")  # Estado por defecto: "ready"
         self.rides.append(ride)
         self.save_data()  # Guardar los datos después de agregar el nuevo ride
         return ride
+
+    def get_active_rides(self):
+        """Obtiene todos los rides que están en estado 'ready'"""
+        return [ride for ride in self.rides if ride.status == "ready"]
