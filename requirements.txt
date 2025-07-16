@@ -1,0 +1,2 @@
+flask                  # Flask para la creación de la API
+coverage               # Para generar reportes de cobertura de código
