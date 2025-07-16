@@ -1,12 +1,11 @@
-# Proyecto Template para Examen de Ingeniería de Software
+COLECCION DE POSTMAN: 
+https://utecdevelopers.postman.co/workspace/Rides_IS~682b2c7d-2d3b-4fd8-b080-fcf876961504/collection/33936871-c9dd315b-1c01-4796-8ce2-540f3bb442bf?action=share&creator=33936871
 
-Este es un template de proyecto basado en **Flask**, ideal para crear APIs y proyectos de software que implementen funcionalidades específicas según los requisitos de un examen. El proyecto está estructurado para ser modular, flexible y fácilmente escalable.
+Para usar la coleccion de Postman se tienen que ejecutar los examples dentro de cada request que necesite un body o un param, caso contrario ejecutar el mismo endpoint.
 
-## Descripción
 
-Este repositorio proporciona una base para el desarrollo de APIs en **Flask**, utilizando buenas prácticas como la metodología **Test Driven Development (TDD)** y pruebas unitarias con **unittest** y **coverage**. 
-
-## Estructura del Proyecto
-
-La estructura del proyecto sigue una organización modular para mejorar la mantenibilidad y la escalabilidad:
+Para el unit test ejecutar
+1. pytest tests/unittest.py -v
+2. python3 -m coverage run -m pytest tests/unittest.py
+3. python3 -m coverage report
 
